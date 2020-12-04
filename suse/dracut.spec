@@ -369,6 +369,7 @@ fi
 %{dracutlibdir}/modules.d/95lunmask
 %{dracutlibdir}/modules.d/95nbd
 %{dracutlibdir}/modules.d/95nfs
+%{dracutlibdir}/modules.d/95nvmf
 %{dracutlibdir}/modules.d/95qeth_rules
 %{dracutlibdir}/modules.d/95resume
 %{dracutlibdir}/modules.d/95rootfs-block
