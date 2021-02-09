@@ -56,8 +56,8 @@ install() {
 
   sed -i -e \
 '/^\[Unit\]/aDefaultDependencies=no\
-Conflicts=shutdown.target\
-Before=shutdown.target
+Conflicts=shutdown.target initrd-switch-root.service\
+Before=shutdown.target initrd-switch-root.service
 /^\[Socket\]/aRemoveOnStop=yes' \
     "$initdir"/usr/lib/systemd/system/dbus.socket
 
