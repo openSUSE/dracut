@@ -59,6 +59,7 @@ installkernel() {
                 "=drivers/phy" \
                 "=drivers/power" \
                 "=drivers/regulator" \
+                "=drivers/reset" \
                 "=drivers/rpmsg" \
                 "=drivers/rtc" \
                 "=drivers/soc" \
