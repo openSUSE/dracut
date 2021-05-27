@@ -14,7 +14,8 @@ check() {
 }
 
 get_modprobe_conf_files() {
-    ls /etc/modprobe.d/*.conf /run/modules.d/*.conf /lib/modules.d/*.conf \
+    ls /etc/modprobe.d/*.conf /run/modprobe.d/*.conf \
+       /lib/modprobe.d/*.conf /usr/lib/modprobe.d/*.conf \
        2>/dev/null
     return 0
 }
