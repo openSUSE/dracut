@@ -263,7 +263,6 @@ fi
 %files mkinitrd-deprecated
 %defattr(-,root,root,0755)
 %{_sbindir}/mkinitrd
-/sbin/mkinitrd
 %{_mandir}/man8/mkinitrd.8*
 
 %files
