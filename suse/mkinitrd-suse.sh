@@ -56,10 +56,9 @@ usage () {
     $cmd "	-L			Disable logging."
     $cmd "	-h			This help screen."
     $cmd "	-m \"module list\"	Modules to include in initrd. Defaults to the"
-    $cmd "				INITRD_MODULES variable in /etc/sysconfig/kernel"
+    $cmd "				settings in the dracut kernel-modules module"
     $cmd "	-u \"DomU module list\"	Modules to include in initrd. Defaults to the"
-    $cmd "				DOMU_INITRD_MODULES variable in"
-    $cmd "				/etc/sysconfig/kernel."
+    $cmd "				settings in the dracut kernel-modules module"
     $cmd "	-d root_device		Root device. Defaults to the device from"
     $cmd "				which / is mounted. Overrides the rootdev"
     $cmd "				environment variable if set."
@@ -314,8 +313,8 @@ dracut_args="${dracut_args} --force"
 if [ -f /etc/sysconfig/kernel ] ; then
     . /etc/sysconfig/kernel
 fi
-[[ $module_list ]] || module_list="${INITRD_MODULES}"
-[[ $domu_module_list ]] || domu_module_list="${DOMU_INITRD_MODULES}"
+[[ $module_list ]] || module_list=""
+[[ $domu_module_list ]] || domu_module_list=""
 shopt -s extglob
 
 failed=""
