@@ -154,7 +154,11 @@ install -m 0644 dracut.conf.d/ima.conf.example %{buildroot}%{_sysconfdir}/dracut
 install -m 0644 suse/s390x_persistent_device.conf %{buildroot}%{_sysconfdir}/dracut.conf.d/10-s390x_persistent_device.conf
 %endif
 
-install -D -m 0755 suse/mkinitrd-suse.sh %{buildroot}/%{_sbindir}/mkinitrd
+%if !0%{?usrmerged}
+    install -D -m 0755 suse/mkinitrd-suse.sh %{buildroot}/sbin/mkinitrd
+%else
+    install -D -m 0755 suse/mkinitrd-suse.sh %{buildroot}/%{_sbindir}/mkinitrd
+%endif
 
 mv %{buildroot}%{_mandir}/man8/mkinitrd-suse.8 %{buildroot}%{_mandir}/man8/mkinitrd.8
 
@@ -246,7 +250,11 @@ fi
 %{dracutlibdir}/modules.d/95znet
 
 %files mkinitrd-deprecated
-%{_sbindir}/mkinitrd
+%if !0%{?usrmerged}
+    /sbin/mkinitrd
+%else
+    %{_sbindir}/mkinitrd
+%endif
 %{_mandir}/man8/mkinitrd.8*
 
 %files
