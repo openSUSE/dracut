@@ -1062,7 +1062,9 @@ if ! [[ $outfile ]]; then
         mkdir -p "$dracutsysrootdir$efidir/Linux"
         outfile="$dracutsysrootdir$efidir/Linux/linux-$kernel${MACHINE_ID:+-${MACHINE_ID}}${BUILD_ID:+-${BUILD_ID}}.efi"
     else
-        if [[ -e "$dracutsysrootdir/boot/initrd-$kernel" ]]; then
+        if [[ -d "$dracutsysrootdir/boot/efi/${MACHINE_ID}" ]]; then
+            outfile="/boot/efi/${MACHINE_ID}/$kernel/initrd"
+        elif [[ -e "$dracutsysrootdir/boot/initrd-$kernel" ]]; then
             outfile="/boot/initrd-$kernel"
         elif [[ $MACHINE_ID ]] && { [[ -d $dracutsysrootdir/boot/${MACHINE_ID} ]] || [[ -L $dracutsysrootdir/boot/${MACHINE_ID} ]]; }; then
             outfile="$dracutsysrootdir/boot/${MACHINE_ID}/$kernel/initrd"

@@ -301,6 +301,14 @@ while (($# > 0)); do
     shift
 done
 
+if [ -e /etc/machine-id ]; then
+    read -r MACHINE_ID < /etc/machine-id
+    if [ -d "$boot_dir/efi/$MACHINE_ID" ]; then
+	error "Looks like systemd-boot is installed. mkinitrd won't work here. Use dracut directly instead."
+	exit 1
+    fi
+fi
+
 [[ $targets && $kernels ]] || default_kernel_images
 if [[ ! $targets || ! $kernels ]];then
     error "No kernel found in $boot_dir or bad modules dir in /lib/modules"
