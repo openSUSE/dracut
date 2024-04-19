@@ -8,11 +8,11 @@ test_run() {
     declare -a disk_args=()
     # shellcheck disable=SC2034
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/raid-1.img raid1
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/raid-2.img raid2
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/raid-3.img raid3
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/raid-4.img raid4
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker
+    qemu_add_drive disk_index disk_args "$TESTDIR"/raid-1.img raid1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/raid-2.img raid2
+    qemu_add_drive disk_index disk_args "$TESTDIR"/raid-3.img raid3
+    qemu_add_drive disk_index disk_args "$TESTDIR"/raid-4.img raid4
 
     test_marker_reset
     "$testdir"/run-qemu \
@@ -89,11 +89,11 @@ test_setup() {
     declare -a disk_args=()
     # shellcheck disable=SC2034
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker 1
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/raid-1.img raid1 150
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/raid-2.img raid2 150
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/raid-3.img raid3 150
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/raid-4.img raid4 150
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/raid-1.img raid1 150
+    qemu_add_drive disk_index disk_args "$TESTDIR"/raid-2.img raid2 150
+    qemu_add_drive disk_index disk_args "$TESTDIR"/raid-3.img raid3 150
+    qemu_add_drive disk_index disk_args "$TESTDIR"/raid-4.img raid4 150
 
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
@@ -114,7 +114,7 @@ test_setup() {
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
         -o "plymouth network kernel-network-modules" \
         -a "debug" \
-        -d "piix ide-gd_mod ata_piix btrfs sd_mod" \
+        -d "piix ide-gd_mod ata_piix btrfs" \
         --no-hostonly-cmdline -N \
         -f "$TESTDIR"/initramfs.testing "$KVERSION" || return 1
 }

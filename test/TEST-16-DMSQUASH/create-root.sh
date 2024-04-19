@@ -13,19 +13,19 @@ set -e
 udevadm settle
 
 # create a single partition using 50% of the capacity of the image file created by test_setup() in test.sh
-sfdisk /dev/disk/by-id/ata-disk_root << EOF
+sfdisk /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_root << EOF
 2048,161792
 EOF
 
 udevadm settle
 
-mkfs.ext4 -q -L dracut /dev/disk/by-id/ata-disk_root-part1
+mkfs.ext4 -q -L dracut /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_root-part1
 mkdir -p /root
-mount -t ext4 /dev/disk/by-id/ata-disk_root-part1 /root
+mount -t ext4 /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_root-part1 /root
 mkdir -p /root/run /root/testdir
 cp -a -t /root /source/*
 echo "Creating squashfs"
 mksquashfs /source /root/testdir/rootfs.img -quiet
 umount /root
-echo "dracut-root-block-created" | dd oflag=direct,dsync of=/dev/disk/by-id/ata-disk_marker
+echo "dracut-root-block-created" | dd oflag=direct,dsync of=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_marker
 poweroff -f
