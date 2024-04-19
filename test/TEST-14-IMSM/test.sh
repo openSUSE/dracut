@@ -12,9 +12,9 @@ client_run() {
     declare -a disk_args=()
     # shellcheck disable=SC2034
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-1.img disk1
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-2.img disk2
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-1.img disk1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-2.img disk2
 
     test_marker_reset
     "$testdir"/run-qemu \
@@ -109,9 +109,9 @@ test_setup() {
     declare -a disk_args=()
     # shellcheck disable=SC2034
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker 1
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-1.img disk1 100
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-2.img disk2 100
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-1.img disk1 200
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-2.img disk2 200
 
     # Invoke KVM and/or QEMU to actually create the target filesystem.
     "$testdir"/run-qemu \
@@ -139,7 +139,7 @@ test_setup() {
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
         -o "plymouth network kernel-network-modules" \
         -a "debug" \
-        -d "piix ide-gd_mod ata_piix ext4 sd_mod" \
+        -d "piix ide-gd_mod ata_piix ext4" \
         --no-hostonly-cmdline -N \
         -f "$TESTDIR"/initramfs.testing "$KVERSION" || return 1
 }

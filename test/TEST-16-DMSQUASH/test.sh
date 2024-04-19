@@ -9,8 +9,8 @@ TEST_DESCRIPTION="live root on a squash filesystem"
 test_run() {
     declare -a disk_args=()
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/root.img root
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker
+    qemu_add_drive disk_index disk_args "$TESTDIR"/root.img root
 
     test_marker_reset
     "$testdir"/run-qemu \
@@ -82,8 +82,8 @@ test_setup() {
     # Create the blank file to use as a root filesystem
     declare -a disk_args=()
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker 1
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/root.img root 160
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/root.img root 160
 
     # Invoke KVM and/or QEMU to actually create the target filesystem.
     "$testdir"/run-qemu \
@@ -107,7 +107,7 @@ test_setup() {
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
         --modules "test dmsquash-live-autooverlay qemu" \
         --omit "rngd" \
-        --drivers "ext4 sd_mod" \
+        --drivers "ext4" \
         --install "mkfs.ext4" \
         --no-hostonly --no-hostonly-cmdline \
         --force "$TESTDIR"/initramfs.testing-autooverlay "$KVERSION" || return 1
