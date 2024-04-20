@@ -15,10 +15,10 @@ test_run() {
     declare -a disk_args=()
     # shellcheck disable=SC2034
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-1.img disk1
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-2.img disk2
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-3.img disk3
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-1.img disk1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-2.img disk2
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-3.img disk3
 
     test_marker_reset
     "$testdir"/run-qemu \
@@ -111,10 +111,10 @@ test_setup() {
     declare -a disk_args=()
     # shellcheck disable=SC2034
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker 1
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-1.img disk1 40
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-2.img disk2 40
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-3.img disk3 40
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-1.img disk1 80
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-2.img disk2 80
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-3.img disk3 80
 
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
@@ -140,7 +140,7 @@ test_setup() {
         i=1
         for uuid in $cryptoUUIDS; do
             eval "$uuid"
-            printf 'luks-%s /dev/disk/by-id/ata-disk_disk%s /etc/key timeout=0\n' "$ID_FS_UUID" $i
+            printf 'luks-%s /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_disk%s /etc/key timeout=0\n' "$ID_FS_UUID" $i
             ((i += 1))
         done > "$initdir"/etc/crypttab
         echo -n test > "$initdir"/etc/key
