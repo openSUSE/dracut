@@ -7,7 +7,7 @@ export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 command -v plymouth > /dev/null 2>&1 && plymouth --quit
 exec > /dev/console 2>&1
 
-systemctl --failed --no-legend --no-pager > /failed
+systemctl --failed --no-legend --no-pager > /run/failed
 
 if ! ismounted /usr; then
     echo "**************************FAILED**************************"
@@ -15,9 +15,9 @@ if ! ismounted /usr; then
     cat /proc/mounts
     echo "**************************FAILED**************************"
 else
-    if [ -s /failed ]; then
+    if [ -s /run/failed ]; then
         echo "**************************FAILED**************************"
-        cat /failed
+        cat /run/failed
         echo "**************************FAILED**************************"
 
     else
