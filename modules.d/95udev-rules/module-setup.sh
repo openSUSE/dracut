@@ -87,6 +87,10 @@ install() {
 
     inst_multiple -o /etc/pcmcia/config.opts
 
-    inst_libdir_file "libnss_files*"
+    # Install required libraries.
+    _arch=${DRACUT_ARCH:-$(uname -m)}
+    inst_libdir_file \
+        {"tls/$_arch/",tls/,"$_arch/",}"libkmod.so*" \
+        {"tls/$_arch/",tls/,"$_arch/",}"libnss_files*"
 
 }
