@@ -23,10 +23,10 @@ done
 [ -w $ROOT ] || mount -o remount,rw $ROOT
 
 #mount /sysroot/var if it is a separate mount
-VARDEV=$(sed -n -e 's/^\#.*//' -e '/ \/var /s/\([[:graph:]]* \).*/\1/p' /sysroot/etc/fstab)
-VARFS=$(sed -n -e 's/^\#.*//' -e '/ \/var /s/[[:graph:]]* * [[:graph:]]* *\([[:graph:]]* \).*/\1/p' /sysroot/etc/fstab)
+VARDEV=$(sed -n -e 's/^\#.*//' -e '/ \/var /s/\([[:graph:]]* \).*/\1/p' "$ROOT"/etc/fstab)
+VARFS=$(sed -n -e 's/^\#.*//' -e '/ \/var /s/[[:graph:]]* * [[:graph:]]* *\([[:graph:]]* \).*/\1/p' "$ROOT"/etc/fstab)
 
-if [ -n $VARDEV ] && [ -n $VARFS ]; then
+if [[ -n $VARDEV ]] && [[ -n $VARFS ]]; then
     #mount btrfs subvolume var
     if [ $VARFS == btrfs ]; then
         SUBVOLIDVAR=$(btrfs subvolume list $ROOT | sed -n '/var$/s/ID \([[:digit:]]*\) .*/\1/p')
@@ -50,7 +50,7 @@ if [ ! -L "$ROOT"/var/lock -a -e "$ROOT"/var/lock ]; then
     ln -sfn ../run/lock "$ROOT"/var/lock
 fi
 
-[ -n $SUBVOLIDVAR ] && umount $ROOT/var
+[[ -n $SUBVOLIDVAR ]] && umount $ROOT/var
 [ -w $ROOT ] && mount -o remount,ro $ROOT
 
 
