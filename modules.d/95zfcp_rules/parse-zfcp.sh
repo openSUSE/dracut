@@ -23,11 +23,13 @@ create_udev_rule() {
     fi
 
     [ -z "$wwpn" ] || [ -z "$lun" ] && return
-    m=$(sed -n "/.*${wwpn}.*${lun}.*/p" "$_rule")
-    if [ -z "$m" ]; then
-        cat >> "$_rule" << EOF
+    if [ -f "$_rule" ]; then
+        m=$(sed -n "/.*${wwpn}.*${lun}.*/p" "$_rule")
+        if [ -z "$m" ]; then
+            cat >> "$_rule" << EOF
 ACTION=="add", KERNEL=="rport-*", ATTR{port_name}=="$wwpn", SUBSYSTEMS=="ccw", KERNELS=="$ccw", ATTR{[ccw/$ccw]$wwpn/unit_add}="$lun"
 EOF
+        fi
     fi
 }
 
