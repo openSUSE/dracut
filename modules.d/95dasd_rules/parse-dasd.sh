@@ -35,7 +35,7 @@ for dasd_arg in $(getargs rd.dasd=); do
                 done
                 ;;
             *)
-                IFS="." read -r sid ssid chan _ <<< "${dev%(ro)}"
+                IFS="." read -r sid ssid chan _ <<< "${dev%(*}"
                 allow_device "$(printf "%01x.%01x.%04x" $((16#$sid)) $((16#$ssid)) $((16#$chan)))"
                 ;;
         esac
