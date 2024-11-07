@@ -254,7 +254,7 @@ make_encrypted_root() {
     # shellcheck disable=SC2034
     declare -i disk_index=0
     qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker 1
-    qemu_add_drive disk_index disk_args "$TESTDIR"/encrypted.img root 120
+    qemu_add_drive disk_index disk_args "$TESTDIR"/encrypted.img root 1
 
     # Invoke KVM and/or QEMU to actually create the target filesystem.
     "$testdir"/run-qemu \
@@ -332,7 +332,7 @@ make_client_root() {
     # shellcheck disable=SC2034
     declare -i disk_index=0
     qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker 1
-    qemu_add_drive disk_index disk_args "$TESTDIR"/unencrypted.img root 120
+    qemu_add_drive disk_index disk_args "$TESTDIR"/unencrypted.img root 1
 
     # Invoke KVM and/or QEMU to actually create the target filesystem.
     "$testdir"/run-qemu \
@@ -429,7 +429,7 @@ EOF
     # shellcheck disable=SC2034
     declare -i disk_index=0
     qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker 1
-    qemu_add_drive disk_index disk_args "$TESTDIR"/server.img root 120
+    qemu_add_drive disk_index disk_args "$TESTDIR"/server.img root 1
 
     # Invoke KVM and/or QEMU to actually create the target filesystem.
     "$testdir"/run-qemu \
