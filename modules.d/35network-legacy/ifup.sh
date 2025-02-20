@@ -677,6 +677,10 @@ for p in $(getargs ip=); do
                 do_dhcp -4
                 ;;
             single-dhcp)
+                if command -v wicked > /dev/null; then
+                    warn "DHCP in parallel on all available interfaces not available with wicked."
+                    exit 1
+                fi
                 do_dhcp_parallel -4
                 exit 0
                 ;;
