@@ -100,6 +100,7 @@ install() {
     [[ -d $config_dir ]] || config_dir=/etc/multipath/conf.d
 
     inst_multiple \
+        "$systemdsystemunitdir"/multipathd.service \
         pkill \
         kpartx \
         dmsetup \
@@ -147,7 +148,7 @@ install() {
             inst_simple "${moddir}/multipathd-configure.service" "${systemdsystemunitdir}/multipathd-configure.service"
             $SYSTEMCTL -q --root "$initdir" enable multipathd-configure.service
         fi
-        inst_simple "${moddir}/multipathd.service" "${systemdsystemunitdir}/multipathd.service"
+        inst_simple "$moddir/multipathd-dracut.conf" "$systemdsystemunitdir/multipathd.service.d/multipathd-dracut.conf"
         $SYSTEMCTL -q --root "$initdir" enable multipathd.service
     else
         inst_hook pre-trigger 02 "$moddir/multipathd.sh"
