@@ -1259,9 +1259,9 @@ if findmnt --raw -n --target "$tmpdir" --output=options | grep -q noexec; then
 fi
 
 # shellcheck disable=SC2155
-readonly DRACUT_TMPDIR="$(mktemp -p "$TMPDIR/" -d -t dracut.XXXXXX)"
+readonly DRACUT_TMPDIR="$(mktemp -p "$TMPDIR/" -d -t dracut.dXXXXXX)"
 [ -d "$DRACUT_TMPDIR" ] || {
-    printf "%s\n" "dracut[F]: mktemp -p '$TMPDIR/' -d -t dracut.XXXXXX failed." >&2
+    printf "%s\n" "dracut[F]: mktemp -p '$TMPDIR/' -d -t dracut.dXXXXXX failed." >&2
     exit 1
 }
 

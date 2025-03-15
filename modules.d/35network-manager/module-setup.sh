@@ -20,6 +20,11 @@ installkernel() {
 }
 
 # called by dracut
+installkernel() {
+    instmods nf_tables nfnetlink nft_fwd_netdev
+}
+
+# called by dracut
 install() {
     local _nm_version
 
@@ -32,7 +37,7 @@ install() {
     inst NetworkManager
     inst_multiple -o /usr/{lib,libexec}/nm-initrd-generator
     inst_multiple -o /usr/{lib,libexec}/nm-daemon-helper
-    inst_multiple -o teamd dhclient
+    inst_multiple -o teamd dhclient nft
     inst_hook cmdline 99 "$moddir/nm-config.sh"
     if dracut_module_included "systemd"; then
 
