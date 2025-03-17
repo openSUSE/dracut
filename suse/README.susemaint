@@ -407,3 +407,5 @@ fca71490 fix(35network-manager): install nftables kernel modules needed
 57911e76 fix(dracut-install): install compressed blobs that match wildcard fwpath
 f3fffa1e fix(systemd-veritysetup): install dm-verity kernel module
 6ac1033c feat(dmsquash-live): add support for rd.live.overlay.nouserconfirmprompt
+9b12ef98 feat(lsinitrd.sh): enable unpacking files from squash-root.img
+d10455ad feat(lsinitrd.sh): print stored dracut cmdline
