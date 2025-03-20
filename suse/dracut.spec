@@ -279,8 +279,8 @@ fi
 %ifarch s390 s390x
 # RH-specific s390 modules, we take another approach
 %{dracutlibdir}/modules.d/95dasd
+%{dracutlibdir}/modules.d/95dasd_mod
 %{dracutlibdir}/modules.d/95zfcp
-%{dracutlibdir}/modules.d/95znet
 %endif
 
 %files
@@ -429,7 +429,6 @@ fi
 %endif
 %{dracutlibdir}/modules.d/95cifs
 %ifarch s390 s390x
-%{dracutlibdir}/modules.d/95dasd_mod
 %{dracutlibdir}/modules.d/95dcssblk
 %endif
 %{dracutlibdir}/modules.d/95debug
@@ -448,6 +447,9 @@ fi
 %{dracutlibdir}/modules.d/95udev-rules
 %{dracutlibdir}/modules.d/95virtfs
 %{dracutlibdir}/modules.d/95virtiofs
+%ifarch s390 s390x
+%{dracutlibdir}/modules.d/95znet
+%endif
 %{dracutlibdir}/modules.d/97biosdevname
 %ifarch %ix86
 %exclude %{dracutlibdir}/modules.d/96securityfs
