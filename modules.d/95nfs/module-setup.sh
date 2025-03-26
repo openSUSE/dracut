@@ -120,12 +120,15 @@ install() {
     mkdir -m 0755 -p "$initdir/var/lib/nfs"
     mkdir -m 0755 -p "$initdir/var/lib/nfs/rpc_pipefs"
     mkdir -m 0770 -p "$initdir/var/lib/rpcbind"
-    mkdir -m 0755 -p "$initdir/var/lib/nfs/sm"
+    mkdir -m 0700 -p "$initdir/var/lib/nfs/sm" \
+        && chown statd:statd "$initdir/var/lib/nfs/sm"
+    mkdir -m 0700 -p "$initdir/var/lib/nfs/sm.bak" \
+        && chown statd:statd "$initdir/var/lib/nfs/sm.bak"
 
     # Rather than copy the passwd file in, just set a user for rpcbind
     # We'll save the state and restart the daemon from the root anyway
-    grep -E '^nfsnobody:|^rpc:|^rpcuser:' "$dracutsysrootdir"/etc/passwd >> "$initdir/etc/passwd"
-    grep -E '^nogroup:|^rpc:|^nobody:' "$dracutsysrootdir"/etc/group >> "$initdir/etc/group"
+    grep -E '^nfsnobody:|^rpc:|^rpcuser:|^statd:' "$dracutsysrootdir"/etc/passwd >> "$initdir/etc/passwd"
+    grep -E '^nogroup:|^rpc:|^nobody:|^statd:' "$dracutsysrootdir"/etc/group >> "$initdir/etc/group"
 
     # rpc user needs to be able to write to this directory to save the warmstart
     # file
