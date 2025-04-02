@@ -9,14 +9,18 @@ if load_fstype sunrpc rpc_pipefs; then
     command -v portmap > /dev/null && [ -z "$(pidof portmap)" ] && portmap
     if command -v rpcbind > /dev/null && [ -z "$(pidof rpcbind)" ]; then
         mkdir -p /run/rpcbind
-        chown rpc:rpc /run/rpcbind
+        chown rpc: /run/rpcbind
         rpcbind
     fi
 
     # Start rpc.statd as mount won't let us use locks on a NFSv4
     # filesystem without talking to it. NFSv4 does locks internally,
     # rpc.lockd isn't needed
-    command -v rpc.statd > /dev/null && [ -z "$(pidof rpc.statd)" ] && rpc.statd
+    if command -v rpc.statd > /dev/null && [ -z "$(pidof rpc.statd)" ]; then
+        mkdir -m 0700 -p /var/lib/nfs/sm /var/lib/nfs/sm.bak
+        chown statd: /var/lib/nfs/sm /var/lib/nfs/sm.bak
+        rpc.statd
+    fi
     command -v rpc.idmapd > /dev/null && [ -z "$(pidof rpc.idmapd)" ] && rpc.idmapd
 else
     warn 'Kernel module "sunrpc" not in the initramfs, or support for filesystem "rpc_pipefs" missing!'
