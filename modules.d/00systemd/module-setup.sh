@@ -42,6 +42,7 @@ install() {
         "$systemdutildir"/systemd-journald \
         "$systemdutildir"/systemd-sysctl \
         "$systemdutildir"/systemd-modules-load \
+        "$systemdutildir"/systemd-validatefs \
         "$systemdutildir"/systemd-vconsole-setup \
         "$systemdutildir"/systemd-volatile-root \
         "$systemdutildir"/systemd-sysroot-fstab-check \
@@ -105,6 +106,7 @@ install() {
         "$systemdsystemunitdir"/systemd-udev-settle.service \
         "$systemdsystemunitdir"/systemd-ask-password-plymouth.service \
         "$systemdsystemunitdir"/systemd-journald.service \
+        "$systemdsystemunitdir"/systemd-validatefs@.service \
         "$systemdsystemunitdir"/systemd-vconsole-setup.service \
         "$systemdsystemunitdir"/systemd-volatile-root.service \
         "$systemdsystemunitdir"/systemd-sysctl.service \
