@@ -410,3 +410,5 @@ f3fffa1e fix(systemd-veritysetup): install dm-verity kernel module
 9b12ef98 feat(lsinitrd.sh): enable unpacking files from squash-root.img
 d10455ad feat(lsinitrd.sh): print stored dracut cmdline
 59af2fff fix(crypt): install dm_crypt module in non-hostonly mode as well
+541ae946 fix(dmsquash-live): use load_fstype to load driver for filesystems
+c6906fea fix(dmsquash-live): do not check ISO md5 if image filesystem
