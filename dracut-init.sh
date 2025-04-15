@@ -60,7 +60,7 @@ if ! [[ $kernel ]]; then
 fi
 
 # shellcheck disable=SC2154
-srcmods="$dracutsysrootdir/lib/modules/$kernel/"
+srcmods="$(realpath -e "$dracutsysrootdir/lib/modules/$kernel")"
 
 # shellcheck disable=SC2154
 [[ $drivers_dir ]] && {
