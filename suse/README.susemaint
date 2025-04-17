@@ -349,3 +349,4 @@ f30cf46e fix(iscsi): attempt iSCSI login before all interfaces are up
 3d5bab81 fix(iscsi): don't require network setup for qedi
 fcde3355 fix(iscsi): make sure services are shut down when switching root
 c6906fea fix(dmsquash-live): do not check ISO md5 if image filesystem
+bb6d0c11 fix(dracut-init): assign real path to srcmods
