@@ -11,6 +11,7 @@ branch. Currently, these active maintenance branches are:
 - SUSE/055              -> SLE 15 SP4
 - SLE-15-SP5_Update     -> SLE 15 SP5 (based on SUSE/055 plus some specific patches)
 - SLE-15-SP6_Update     -> SLE 15 SP6
+- SLE-15-SP7_Update     -> SLE 15 SP7
 - SL-Micro-6.0_Update   -> SL Micro 6.0
 - SL-Micro-6.1_Update   -> SL Micro 6.1
 - SLFO_Main             -> SUSE Linux Framework One
