@@ -16,6 +16,7 @@
 #
 
 %define dracutlibdir %{_prefix}/lib/dracut
+%define rbrelease %(r=%{release}; echo ${r%%.*})
 
 %if 0%{?suse_version} >= 1550
 %define dracut_sbindir %{_sbindir}
@@ -135,7 +136,7 @@ but are not normally supported or required.
 %install
 %make_install
 
-echo -e "#!/bin/bash\nDRACUT_VERSION=%{version}-%{release}" > %{buildroot}%{dracutlibdir}/dracut-version.sh
+echo -e "#!/bin/bash\nDRACUT_VERSION=%{version}-%{rbrelease}" > %{buildroot}%{dracutlibdir}/dracut-version.sh
 
 # remove architecture specific modules
 %ifnarch ppc ppc64 ppc64le ppc64p7
