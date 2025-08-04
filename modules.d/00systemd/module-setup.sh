@@ -241,6 +241,7 @@ EOF
         70-uaccess.rules \
         71-seat.rules \
         73-seat-late.rules \
+        90-image-dissect.rules \
         90-vconsole.rules \
         99-systemd.rules
 
