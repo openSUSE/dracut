@@ -43,17 +43,21 @@ include_fs_helper_modules() {
         f2fs)
             instmods crc32
             ;;
+        vfat)
+            instmods "=fs/nls"
+            ;;
     esac
 }
 
 # called by dracut
 installkernel() {
-    # xfs/btrfs/ext4 need crc32c, f2fs needs crc32
+    # xfs/btrfs/ext4 need crc32c, f2fs needs crc32,
+    # vfat needs charsets for codepage= and iocharset=
     if [[ $hostonly ]]; then
         for_each_host_dev_fs include_fs_helper_modules
         :
     else
-        instmods crc32c crc32
+        instmods crc32c crc32 "=fs/nls"
     fi
 }
 
