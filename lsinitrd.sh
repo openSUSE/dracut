@@ -109,39 +109,59 @@ if [[ $1 ]]; then
         exit 1
     fi
 else
-    if [[ -d /efi/Default ]] || [[ -d /boot/Default ]] || [[ -d /boot/efi/Default ]]; then
-        MACHINE_ID="Default"
-    elif [[ -s /etc/machine-id ]]; then
-        read -r MACHINE_ID < /etc/machine-id
-        [[ $MACHINE_ID == "uninitialized" ]] && MACHINE_ID="Default"
-    else
-        MACHINE_ID="Default"
+    if command -v bootctl > /dev/null && command -v jq > /dev/null; then
+        # get proper path to $BOOT
+        base_path=$(bootctl -x)
+        # get initrd key of the selected bootloader entry (i.e., the one that
+        # is actually used to boot the system)
+        mapfile -t files < <(bootctl --json=pretty list 2> /dev/null | jq -r '.[] | select(.isSelected).initrd[]' 2> /dev/null)
+        if [[ ${#files[@]} -ge 1 ]] && [[ -e "${base_path}${files[0]}" ]]; then
+            image="${base_path}${files[0]}"
+        else
+            # if the selected bootloader entry does not have any initrd keys, check
+            # the default (maybe the current selected entry was removed)
+            mapfile -t files < <(bootctl --json=pretty list 2> /dev/null | jq -r '.[] | select(.isDefault).initrd[]' 2> /dev/null)
+            if [[ ${#files[@]} -ge 1 ]] && [[ -e "${base_path}${files[0]}" ]]; then
+                image="${base_path}${files[0]}"
+            fi
+        fi
     fi
 
-    if [[ -d /efi/loader/entries || -L /efi/loader/entries ]] \
-        && [[ $MACHINE_ID ]] \
-        && [[ -d /efi/${MACHINE_ID} || -L /efi/${MACHINE_ID} ]]; then
-        image="/efi/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
-    elif [[ -d /boot/loader/entries || -L /boot/loader/entries ]] \
-        && [[ $MACHINE_ID ]] \
-        && [[ -d /boot/${MACHINE_ID} || -L /boot/${MACHINE_ID} ]]; then
-        image="/boot/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
-    elif [[ -d /boot/efi/loader/entries || -L /boot/efi/loader/entries ]] \
-        && [[ $MACHINE_ID ]] \
-        && [[ -d /boot/efi/${MACHINE_ID} || -L /boot/efi/${MACHINE_ID} ]]; then
-        image="/boot/efi/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
-    elif [[ -f /lib/modules/${KERNEL_VERSION}/initrd ]]; then
-        image="/lib/modules/${KERNEL_VERSION}/initrd"
-    elif [[ -f /boot/initrd-${KERNEL_VERSION} ]]; then
-        image="/boot/initrd-${KERNEL_VERSION}"
-    elif [[ $MACHINE_ID ]] \
-        && mountpoint -q /efi; then
-        image="/efi/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
-    elif [[ $MACHINE_ID ]] \
-        && mountpoint -q /boot/efi; then
-        image="/boot/efi/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
-    else
-        image=""
+    if [[ -z $image ]]; then
+        if [[ -d /efi/Default ]] || [[ -d /boot/Default ]] || [[ -d /boot/efi/Default ]]; then
+            MACHINE_ID="Default"
+        elif [[ -s /etc/machine-id ]]; then
+            read -r MACHINE_ID < /etc/machine-id
+            [[ $MACHINE_ID == "uninitialized" ]] && MACHINE_ID="Default"
+        else
+            MACHINE_ID="Default"
+        fi
+
+        if [[ -d /efi/loader/entries || -L /efi/loader/entries ]] \
+            && [[ $MACHINE_ID ]] \
+            && [[ -d /efi/${MACHINE_ID} || -L /efi/${MACHINE_ID} ]]; then
+            image="/efi/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
+        elif [[ -d /boot/loader/entries || -L /boot/loader/entries ]] \
+            && [[ $MACHINE_ID ]] \
+            && [[ -d /boot/${MACHINE_ID} || -L /boot/${MACHINE_ID} ]]; then
+            image="/boot/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
+        elif [[ -d /boot/efi/loader/entries || -L /boot/efi/loader/entries ]] \
+            && [[ $MACHINE_ID ]] \
+            && [[ -d /boot/efi/${MACHINE_ID} || -L /boot/efi/${MACHINE_ID} ]]; then
+            image="/boot/efi/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
+        elif [[ -f /lib/modules/${KERNEL_VERSION}/initrd ]]; then
+            image="/lib/modules/${KERNEL_VERSION}/initrd"
+        elif [[ -f /boot/initrd-${KERNEL_VERSION} ]]; then
+            image="/boot/initrd-${KERNEL_VERSION}"
+        elif [[ $MACHINE_ID ]] \
+            && mountpoint -q /efi; then
+            image="/efi/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
+        elif [[ $MACHINE_ID ]] \
+            && mountpoint -q /boot/efi; then
+            image="/boot/efi/${MACHINE_ID}/${KERNEL_VERSION}/initrd"
+        else
+            image=""
+        fi
     fi
 fi
 
