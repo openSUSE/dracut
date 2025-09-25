@@ -14,6 +14,7 @@ branch. Currently, these active maintenance branches are:
 - SLE-15-SP7_Update     -> SLE 15 SP7
 - SL-Micro-6.0_Update   -> SL Micro 6.0
 - SL-Micro-6.1_Update   -> SL Micro 6.1
+- SLES-16.0_Update      -> SLES 16.0 and SL Micro 6.2 (both share the same code)
 - SLFO_Main             -> SUSE Linux Framework One
 - SUSE/059              -> Tumbleweed
 
