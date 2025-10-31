@@ -440,3 +440,4 @@ f879b04d fix(74nvmf): make sure autoconnect script is run at least once
 51bd1331 fix(fs-lib): include modules for charsets for working vfat support
 89dcdd91 fix(dracut.sh): check that custom fw search patch exists before reading it
 46369b3b fix(dmsquash-live): install required stat binary
+de8b63f5 fix(multipath): add udev rule 99-z-dm-mpath-late.rules
