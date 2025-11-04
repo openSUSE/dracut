@@ -408,3 +408,4 @@ da099c30 fix(rngd): adjust license to match the license of the whole project
 4f6ca33d fix(dracut-util): crash if CMDLINE ends with quotation mark
 1b11affd fix(74nvmf): only set netroot if it's yet empty
 f879b04d fix(74nvmf): make sure autoconnect script is run at least once
+614e9d34 fix(kernel-modules-extra): remove stray \ before /
