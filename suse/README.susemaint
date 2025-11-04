@@ -380,3 +380,4 @@ bb6d0c11 fix(dracut-init): assign real path to srcmods
 8674d84f fix(dracut): kernel module name normalization in drivers lists
 da099c30 fix(rngd): adjust license to match the license of the whole project
 4f6ca33d fix(dracut-util): crash if CMDLINE ends with quotation mark
+614e9d34 fix(kernel-modules-extra): remove stray \ before /
