@@ -53,7 +53,7 @@ test_setup() {
     # Create what will eventually be our root filesystem onto an overlay
     "$basedir"/dracut.sh -l --keep --tmpdir "$TESTDIR" \
         -m "test-root systemd" \
-        -I "ldconfig" \
+        -I "ldconfig sed" \
         -i ./test-init.sh /sbin/test-init \
         -i ./fstab /etc/fstab \
         -i "${basedir}/modules.d/99base/dracut-lib.sh" "/lib/dracut-lib.sh" \

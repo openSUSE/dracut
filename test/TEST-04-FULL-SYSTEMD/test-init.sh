@@ -15,6 +15,9 @@ if ! ismounted /usr; then
     cat /proc/mounts
     echo "**************************FAILED**************************"
 else
+    # workaround for bsc#1218710
+    sed -i "/systemd-vconsole-setup.service/d" /run/failed
+
     if [ -s /run/failed ]; then
         echo "**************************FAILED**************************"
         cat /run/failed
