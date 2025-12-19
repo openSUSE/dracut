@@ -7,7 +7,7 @@ export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 command -v plymouth > /dev/null 2>&1 && plymouth --quit
 exec > /dev/console 2>&1
 
-systemctl --failed --no-legend --no-pager > /failed
+systemctl --failed --no-legend --no-pager > /run/failed
 
 if ! ismounted /usr; then
     echo "**************************FAILED**************************"
@@ -15,13 +15,16 @@ if ! ismounted /usr; then
     cat /proc/mounts
     echo "**************************FAILED**************************"
 else
-    if [ -s /failed ]; then
+    # workaround for bsc#1218710
+    sed -i "/systemd-vconsole-setup.service/d" /run/failed
+
+    if [ -s /run/failed ]; then
         echo "**************************FAILED**************************"
-        cat /failed
+        cat /run/failed
         echo "**************************FAILED**************************"
 
     else
-        echo "dracut-root-block-success" | dd oflag=direct,dsync of=/dev/disk/by-id/ata-disk_marker
+        echo "dracut-root-block-success" | dd oflag=direct,dsync of=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_marker
         echo "All OK"
     fi
 fi
@@ -37,5 +40,4 @@ if getargbool 0 rd.shell; then
     setsid $CTTY sh -i
 fi
 echo "Powering down."
-systemctl --no-block poweroff
-exit 0
+poweroff -f

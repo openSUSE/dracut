@@ -13,12 +13,12 @@ udevadm settle
 
 set -ex
 printf test > keyfile
-cryptsetup -q luksFormat /dev/disk/by-id/ata-disk_disk1 /keyfile
-cryptsetup -q luksFormat /dev/disk/by-id/ata-disk_disk2 /keyfile
-cryptsetup -q luksFormat /dev/disk/by-id/ata-disk_disk3 /keyfile
-cryptsetup luksOpen /dev/disk/by-id/ata-disk_disk1 dracut_disk1 < /keyfile
-cryptsetup luksOpen /dev/disk/by-id/ata-disk_disk2 dracut_disk2 < /keyfile
-cryptsetup luksOpen /dev/disk/by-id/ata-disk_disk3 dracut_disk3 < /keyfile
+cryptsetup -q luksFormat /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_disk1 /keyfile
+cryptsetup -q luksFormat /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_disk2 /keyfile
+cryptsetup -q luksFormat /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_disk3 /keyfile
+cryptsetup luksOpen /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_disk1 dracut_disk1 < /keyfile
+cryptsetup luksOpen /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_disk2 dracut_disk2 < /keyfile
+cryptsetup luksOpen /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_disk3 dracut_disk3 < /keyfile
 mdadm --create /dev/md0 --run --auto=yes --level=5 --raid-devices=3 /dev/mapper/dracut_disk1 /dev/mapper/dracut_disk2 /dev/mapper/dracut_disk3
 # wait for the array to finish initailizing, otherwise this sometimes fails
 # randomly.
@@ -28,9 +28,9 @@ lvm vgcreate dracut /dev/md0
 
 lvm lvcreate -l 100%FREE -n root dracut
 lvm vgchange -ay
-mke2fs /dev/dracut/root
+mkfs.ext4 /dev/dracut/root
 mkdir -p /sysroot
-mount /dev/dracut/root /sysroot
+mount -t ext4 /dev/dracut/root /sysroot
 cp -a -t /sysroot /source/*
 umount /sysroot
 lvm lvchange -a n /dev/dracut/root
@@ -42,9 +42,9 @@ cryptsetup luksClose /dev/mapper/dracut_disk3
 
 {
     echo "dracut-root-block-created"
-    for i in /dev/disk/by-id/ata-disk_disk[123]; do
+    for i in /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_disk[123]; do
         udevadm info --query=property --name="$i" | grep -F 'ID_FS_UUID='
     done
-} | dd oflag=direct,dsync of=/dev/disk/by-id/ata-disk_marker
+} | dd oflag=direct,dsync of=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_marker
 sync
 poweroff -f

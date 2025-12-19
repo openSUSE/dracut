@@ -2,12 +2,8 @@
 # -*- mode: shell-script; indent-tabs-mode: nil; sh-basic-offset: 4; -*-
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
-[ -z "$USE_NETWORK" ] && USE_NETWORK="network-legacy"
-
 # shellcheck disable=SC2034
 TEST_DESCRIPTION="root filesystem on NFS with bridging/bonding/vlan with $USE_NETWORK"
-
-KVERSION=${KVERSION-$(uname -r)}
 
 # Uncomment this to debug failures
 #DEBUGFAIL="rd.shell rd.break"
@@ -27,10 +23,10 @@ run_server() {
         -device virtio-net-pci,netdev=n1,mac=52:54:01:12:34:57 \
         -device virtio-net-pci,netdev=n2,mac=52:54:01:12:34:58 \
         -device virtio-net-pci,netdev=n3,mac=52:54:01:12:34:59 \
-        -hda "$TESTDIR"/server.ext3 \
+        -hda "$TESTDIR"/server.ext4 \
         -serial "${SERIAL:-"file:$TESTDIR/server.log"}" \
         -device i6300esb -watchdog-action poweroff \
-        -append "panic=1 oops=panic softlockup_panic=1 loglevel=7 root=LABEL=dracut rootfstype=ext3 rw console=ttyS0,115200n81 selinux=0 rd.debug" \
+        -append "panic=1 oops=panic softlockup_panic=1 loglevel=7 root=LABEL=dracut rootfstype=ext4 rw console=ttyS0,115200n81 selinux=0 rd.debug" \
         -initrd "$TESTDIR"/initramfs.server \
         -pidfile "$TESTDIR"/server.pid -daemonize || return 1
     chmod 644 -- "$TESTDIR"/server.pid || return 1
@@ -201,9 +197,6 @@ root=nfs:192.168.50.1:/nfs/client bootdev=br0
 }
 
 test_setup() {
-    # Make server root
-    dd if=/dev/zero of="$TESTDIR"/server.ext3 bs=1M count=120
-
     kernel=$KVERSION
     rm -rf -- "$TESTDIR"/overlay
     (
@@ -326,7 +319,7 @@ test_setup() {
         export initdir=$TESTDIR/overlay
         # shellcheck disable=SC1090
         . "$basedir"/dracut-init.sh
-        inst_multiple sfdisk mkfs.ext3 poweroff cp umount sync dd
+        inst_multiple sfdisk mkfs.ext4 poweroff cp umount sync dd
         inst_hook initqueue 01 ./create-root.sh
         inst_hook initqueue/finished 01 ./finished-false.sh
     )
@@ -336,17 +329,23 @@ test_setup() {
     # devices, volume groups, encrypted partitions, etc.
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
         -m "bash rootfs-block kernel-modules qemu" \
-        -d "piix ide-gd_mod ata_piix ext3 sd_mod" \
+        -d "piix ide-gd_mod ata_piix ext4 sd_mod" \
         --nomdadmconf \
         --no-hostonly-cmdline -N \
         -f "$TESTDIR"/initramfs.makeroot "$KVERSION" || return 1
 
+    declare -a disk_args=()
+    declare -i disk_index=0
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/server.ext4 root 1
+
     # Invoke KVM and/or QEMU to actually create the target filesystem.
     "$testdir"/run-qemu \
-        -drive format=raw,index=0,media=disk,file="$TESTDIR"/server.ext3 \
-        -append "root=/dev/dracut/root rw rootfstype=ext3 quiet console=ttyS0,115200n81 selinux=0" \
+        "${disk_args[@]}" \
+        -append "root=/dev/dracut/root rw rootfstype=ext4 quiet console=ttyS0,115200n81 selinux=0" \
         -initrd "$TESTDIR"/initramfs.makeroot || return 1
-    grep -U --binary-files=binary -F -m 1 -q dracut-root-block-created "$TESTDIR"/server.ext3 || return 1
+    test_marker_check dracut-root-block-created || return 1
+    rm -- "$TESTDIR"/marker.img
     rm -fr "$TESTDIR"/overlay
 
     # Make an overlay with needed tools for the test harness
@@ -380,7 +379,7 @@ test_setup() {
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
         --no-early-microcode \
         -m "rootfs-block debug kernel-modules watchdog qemu network network-legacy" \
-        -d "ipvlan macvlan af_packet piix ide-gd_mod ata_piix ext3 sd_mod nfsv2 nfsv3 nfsv4 nfs_acl nfs_layout_nfsv41_files nfsd virtio-net i6300esb ib700wdt" \
+        -d "ipvlan macvlan af_packet piix ide-gd_mod ata_piix ext4 sd_mod nfsv2 nfsv3 nfsv4 nfs_acl nfs_layout_nfsv41_files nfsd virtio-net i6300esb ib700wdt" \
         --no-hostonly-cmdline -N \
         -f "$TESTDIR"/initramfs.server "$KVERSION" || return 1
 }

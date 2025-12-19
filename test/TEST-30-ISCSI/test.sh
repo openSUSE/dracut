@@ -1,11 +1,7 @@
 #!/bin/bash
 
-[ -z "$USE_NETWORK" ] && USE_NETWORK="network-legacy"
-
 # shellcheck disable=SC2034
 TEST_DESCRIPTION="root filesystem over iSCSI with $USE_NETWORK"
-
-KVERSION=${KVERSION-$(uname -r)}
 
 #DEBUGFAIL="rd.shell rd.break rd.debug loglevel=7 "
 #SERVER_DEBUG="rd.debug loglevel=7"
@@ -17,10 +13,10 @@ run_server() {
 
     declare -a disk_args=()
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/server.img serverroot 1
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/singleroot.img singleroot
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/raid0-1.img raid0-1
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/raid0-2.img raid0-2
+    qemu_add_drive disk_index disk_args "$TESTDIR"/server.img serverroot 0 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/singleroot.img singleroot
+    qemu_add_drive disk_index disk_args "$TESTDIR"/raid0-1.img raid0-1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/raid0-2.img raid0-2
 
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
@@ -28,7 +24,7 @@ run_server() {
         -net nic,macaddr=52:54:00:12:34:56,model=e1000 \
         -net nic,macaddr=52:54:00:12:34:57,model=e1000 \
         -net socket,listen=127.0.0.1:12330 \
-        -append "panic=1 oops=panic softlockup_panic=1 quiet root=/dev/disk/by-id/ata-disk_serverroot rootfstype=ext3 rw console=ttyS0,115200n81 selinux=0 $SERVER_DEBUG" \
+        -append "panic=1 oops=panic softlockup_panic=1 quiet root=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_serverroot rootfstype=ext4 rw console=ttyS0,115200n81 selinux=0 $SERVER_DEBUG" \
         -initrd "$TESTDIR"/initramfs.server \
         -pidfile "$TESTDIR"/server.pid -daemonize || return 1
     chmod 644 "$TESTDIR"/server.pid || return 1
@@ -55,11 +51,11 @@ run_client() {
     shift
     echo "CLIENT TEST START: $test_name"
 
-    dd if=/dev/zero of="$TESTDIR"/marker.img bs=1MiB count=1
     declare -a disk_args=()
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker
 
+    test_marker_reset
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
         -net nic,macaddr=52:54:00:12:34:00,model=e1000 \
@@ -70,7 +66,7 @@ run_client() {
         -initrd "$TESTDIR"/initramfs.testing
 
     # shellcheck disable=SC2181
-    if [[ $? -ne 0 ]] || ! grep -U --binary-files=binary -F -m 1 -q iscsi-OK "$TESTDIR"/marker.img; then
+    if [[ $? -ne 0 ]] || ! test_marker_check iscsi-OK; then
         echo "CLIENT TEST END: $test_name [FAILED - BAD EXIT]"
         return 1
     fi
@@ -171,7 +167,7 @@ test_setup() {
         export initdir=$TESTDIR/overlay
         # shellcheck disable=SC1090
         . "$basedir"/dracut-init.sh
-        inst_multiple sfdisk mkfs.ext3 poweroff cp umount setsid dd sync blockdev
+        inst_multiple sfdisk mkfs.ext4 poweroff cp umount setsid dd sync blockdev
         inst_hook initqueue 01 ./create-client-root.sh
         inst_hook initqueue/finished 01 ./finished-false.sh
     )
@@ -181,29 +177,24 @@ test_setup() {
     # devices, volume groups, encrypted partitions, etc.
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
         -m "dash crypt lvm mdraid kernel-modules qemu" \
-        -d "piix ide-gd_mod ata_piix ext3 sd_mod" \
+        -d "piix ide-gd_mod ata_piix ext4 sd_mod" \
         --no-hostonly-cmdline -N \
         -f "$TESTDIR"/initramfs.makeroot "$KVERSION" || return 1
     rm -rf -- "$TESTDIR"/overlay
 
-    dd if=/dev/zero of="$TESTDIR"/marker.img bs=1MiB count=1
-    dd if=/dev/zero of="$TESTDIR"/singleroot.img bs=1MiB count=200
-    dd if=/dev/zero of="$TESTDIR"/raid0-1.img bs=1MiB count=100
-    dd if=/dev/zero of="$TESTDIR"/raid0-2.img bs=1MiB count=100
-
     declare -a disk_args=()
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/singleroot.img singleroot
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/raid0-1.img raid0-1
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/raid0-2.img raid0-2
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/singleroot.img singleroot 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/raid0-1.img raid0-1 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/raid0-2.img raid0-2 1
 
     # Invoke KVM and/or QEMU to actually create the target filesystem.
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
-        -append "root=/dev/fakeroot rw rootfstype=ext3 quiet console=ttyS0,115200n81 selinux=0" \
+        -append "root=/dev/fakeroot rw rootfstype=ext4 quiet console=ttyS0,115200n81 selinux=0" \
         -initrd "$TESTDIR"/initramfs.makeroot || return 1
-    grep -U --binary-files=binary -F -m 1 -q dracut-root-block-created "$TESTDIR"/marker.img || return 1
+    test_marker_check dracut-root-block-created || return 1
     rm -- "$TESTDIR"/marker.img
 
     # shellcheck disable=SC2031
@@ -262,7 +253,7 @@ test_setup() {
         export initdir=$TESTDIR/overlay
         # shellcheck disable=SC1090
         . "$basedir"/dracut-init.sh
-        inst_multiple sfdisk mkfs.ext3 poweroff cp umount sync dd
+        inst_multiple sfdisk mkfs.ext4 poweroff cp umount sync dd
         inst_hook initqueue 01 ./create-server-root.sh
         inst_hook initqueue/finished 01 ./finished-false.sh
     )
@@ -272,26 +263,24 @@ test_setup() {
     # devices, volume groups, encrypted partitions, etc.
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
         -m "dash rootfs-block kernel-modules qemu" \
-        -d "piix ide-gd_mod ata_piix ext3 sd_mod" \
+        -d "piix ide-gd_mod ata_piix ext4 sd_mod" \
         --nomdadmconf \
         --no-hostonly-cmdline -N \
         -f "$TESTDIR"/initramfs.makeroot "$KVERSION" || return 1
     rm -rf -- "$TESTDIR"/overlay
 
-    dd if=/dev/zero of="$TESTDIR"/server.img bs=1MiB count=60
-    dd if=/dev/zero of="$TESTDIR"/marker.img bs=1MiB count=1
     declare -a disk_args=()
     # shellcheck disable=SC2034
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/server.img root
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/server.img root 1
 
     # Invoke KVM and/or QEMU to actually create the target filesystem.
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
-        -append "root=/dev/dracut/root rw rootfstype=ext3 quiet console=ttyS0,115200n81 selinux=0" \
+        -append "root=/dev/dracut/root rw rootfstype=ext4 quiet console=ttyS0,115200n81 selinux=0" \
         -initrd "$TESTDIR"/initramfs.makeroot || return 1
-    grep -U --binary-files=binary -F -m 1 -q dracut-root-block-created "$TESTDIR"/marker.img || return 1
+    test_marker_check dracut-root-block-created || return 1
     rm -- "$TESTDIR"/marker.img
 
     # Make an overlay with needed tools for the test harness
@@ -326,7 +315,7 @@ test_setup() {
     # Make server's dracut image
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
         -a "dash rootfs-block debug kernel-modules network network-legacy" \
-        -d "af_packet piix ide-gd_mod ata_piix ext3 sd_mod e1000 drbg" \
+        -d "af_packet piix ide-gd_mod ata_piix ext4 sd_mod e1000 drbg virtio_pci virtio_scsi" \
         --no-hostonly-cmdline -N \
         -f "$TESTDIR"/initramfs.server "$KVERSION" || return 1
 

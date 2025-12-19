@@ -2,8 +2,6 @@
 # shellcheck disable=SC2034
 TEST_DESCRIPTION="root filesystem on LVM on encrypted partitions of a RAID-5"
 
-KVERSION=${KVERSION-$(uname -r)}
-
 # Uncomment this to debug failures
 #DEBUGFAIL="rd.shell rd.break" # udev.log-priority=debug
 #DEBUGFAIL="rd.shell rd.udev.log-priority=debug loglevel=70 systemd.log_target=kmsg systemd.log_target=debug"
@@ -12,43 +10,42 @@ KVERSION=${KVERSION-$(uname -r)}
 test_run() {
     LUKSARGS=$(cat "$TESTDIR"/luks.txt)
 
-    dd if=/dev/zero of="$TESTDIR"/marker.img bs=1MiB count=1
-
     echo "CLIENT TEST START: $LUKSARGS"
 
     declare -a disk_args=()
     # shellcheck disable=SC2034
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-1.img disk1
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-2.img disk2
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-3.img disk3
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-1.img disk1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-2.img disk2
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-3.img disk3
 
+    test_marker_reset
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
         -append "panic=1 oops=panic softlockup_panic=1 systemd.crash_reboot root=/dev/dracut/root rw rd.auto rd.retry=20 console=ttyS0,115200n81 selinux=0 rd.debug rootwait $LUKSARGS rd.shell=0 $DEBUGFAIL" \
         -initrd "$TESTDIR"/initramfs.testing
-    grep -U --binary-files=binary -F -m 1 -q dracut-root-block-success "$TESTDIR"/marker.img || return 1
+    test_marker_check || return 1
     echo "CLIENT TEST END: [OK]"
 
-    dd if=/dev/zero of="$TESTDIR"/marker.img bs=1MiB count=1
+    test_marker_reset
 
     echo "CLIENT TEST START: Any LUKS"
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
         -append "panic=1 oops=panic softlockup_panic=1 systemd.crash_reboot root=/dev/dracut/root rw quiet rd.auto rd.retry=20 rd.info console=ttyS0,115200n81 selinux=0 rd.debug  $DEBUGFAIL" \
         -initrd "$TESTDIR"/initramfs.testing
-    grep -U --binary-files=binary -F -m 1 -q dracut-root-block-success "$TESTDIR"/marker.img || return 1
+    test_marker_check || return 1
     echo "CLIENT TEST END: [OK]"
 
-    dd if=/dev/zero of="$TESTDIR"/marker.img bs=1MiB count=1
+    test_marker_reset
 
     echo "CLIENT TEST START: Wrong LUKS UUID"
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
         -append "panic=1 oops=panic softlockup_panic=1 systemd.crash_reboot root=/dev/dracut/root rw quiet rd.auto rd.retry=10 rd.info console=ttyS0,115200n81 selinux=0 rd.debug  $DEBUGFAIL rd.luks.uuid=failme" \
         -initrd "$TESTDIR"/initramfs.testing
-    grep -U --binary-files=binary -F -m 1 -q dracut-root-block-success "$TESTDIR"/marker.img && return 1
+    test_marker_check && return 1
     echo "CLIENT TEST END: [OK]"
 
     return 0
@@ -95,7 +92,7 @@ test_setup() {
         export initdir=$TESTDIR/overlay
         # shellcheck disable=SC1090
         . "$basedir"/dracut-init.sh
-        inst_multiple sfdisk mke2fs poweroff cp umount grep dd sync
+        inst_multiple sfdisk mkfs.ext4 poweroff cp umount grep dd sync
         inst_hook initqueue 01 ./create-root.sh
         inst_hook initqueue/finished 01 ./finished-false.sh
     )
@@ -105,29 +102,25 @@ test_setup() {
     # devices, volume groups, encrypted partitions, etc.
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
         -m "bash crypt lvm mdraid kernel-modules qemu" \
-        -d "piix ide-gd_mod ata_piix ext2 sd_mod" \
+        -d "piix ide-gd_mod ata_piix ext4 sd_mod" \
         --no-hostonly-cmdline -N \
         -f "$TESTDIR"/initramfs.makeroot "$KVERSION" || return 1
     rm -rf -- "$TESTDIR"/overlay
 
     # Create the blank files to use as a root filesystem
-    dd if=/dev/zero of="$TESTDIR"/disk-1.img bs=1MiB count=40
-    dd if=/dev/zero of="$TESTDIR"/disk-2.img bs=1MiB count=40
-    dd if=/dev/zero of="$TESTDIR"/disk-3.img bs=1MiB count=40
-    dd if=/dev/zero of="$TESTDIR"/marker.img bs=1MiB count=1
     declare -a disk_args=()
     # shellcheck disable=SC2034
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-1.img disk1
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-2.img disk2
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/disk-3.img disk3
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-1.img disk1 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-2.img disk2 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/disk-3.img disk3 1
 
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
-        -append "root=/dev/fakeroot rw rootfstype=ext2 quiet console=ttyS0,115200n81 selinux=0" \
+        -append "root=/dev/fakeroot rw rootfstype=ext4 quiet console=ttyS0,115200n81 selinux=0" \
         -initrd "$TESTDIR"/initramfs.makeroot || return 1
-    grep -U --binary-files=binary -F -m 1 -q dracut-root-block-created "$TESTDIR"/marker.img || return 1
+    test_marker_check dracut-root-block-created || return 1
     cryptoUUIDS=$(grep -F --binary-files=text -m 3 ID_FS_UUID "$TESTDIR"/marker.img)
     for uuid in $cryptoUUIDS; do
         eval "$uuid"
@@ -147,7 +140,7 @@ test_setup() {
         i=1
         for uuid in $cryptoUUIDS; do
             eval "$uuid"
-            printf 'luks-%s /dev/disk/by-id/ata-disk_disk%s /etc/key timeout=0\n' "$ID_FS_UUID" $i
+            printf 'luks-%s /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_disk%s /etc/key timeout=0\n' "$ID_FS_UUID" $i
             ((i += 1))
         done > "$initdir"/etc/crypttab
         echo -n test > "$initdir"/etc/key
@@ -156,7 +149,7 @@ test_setup() {
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
         -o "plymouth network kernel-network-modules" \
         -a "debug" \
-        -d "piix ide-gd_mod ata_piix ext2 sd_mod" \
+        -d "piix ide-gd_mod ata_piix ext4 sd_mod" \
         --no-hostonly-cmdline -N \
         -f "$TESTDIR"/initramfs.testing "$KVERSION" || return 1
 }

@@ -1,28 +1,26 @@
 #!/bin/bash
 # shellcheck disable=SC2034
-TEST_DESCRIPTION="root filesystem on a ext3 filesystem"
+TEST_DESCRIPTION="root filesystem on a ext4 filesystem"
 
 test_check() {
     command -v systemctl &> /dev/null
 }
 
-KVERSION="${KVERSION-$(uname -r)}"
-
 # Uncomment this to debug failures
 #DEBUGFAIL="rd.shell=1 rd.break=pre-mount"
 test_run() {
-    dd if=/dev/zero of="$TESTDIR"/marker.img bs=1MiB count=1
     declare -a disk_args=()
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/root.img root
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker
+    qemu_add_drive disk_index disk_args "$TESTDIR"/root.img root
 
+    test_marker_reset
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
         -append "panic=1 oops=panic softlockup_panic=1 systemd.crash_reboot root=LABEL=dracut rw loglevel=77 systemd.log_level=debug systemd.log_target=console rd.retry=3 rd.info console=ttyS0,115200n81 selinux=0 init=/sbin/init rd.shell=0 $DEBUGFAIL" \
         -initrd "$TESTDIR"/initramfs.testing || return 1
 
-    grep -U --binary-files=binary -F -m 1 -q dracut-root-block-success "$TESTDIR"/marker.img
+    test_marker_check || return 1
 }
 
 test_setup() {
@@ -42,27 +40,25 @@ test_setup() {
     # devices, volume groups, encrypted partitions, etc.
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
         -m "test-makeroot dash rootfs-block kernel-modules qemu" \
-        -d "piix ide-gd_mod ata_piix ext3 sd_mod" \
-        -I "mkfs.ext3" \
+        -d "piix ide-gd_mod ata_piix ext4 sd_mod" \
+        -I "mkfs.ext4" \
         -i ./create-root.sh /lib/dracut/hooks/initqueue/01-create-root.sh \
         --nomdadmconf \
         --no-hostonly-cmdline -N \
         -f "$TESTDIR"/initramfs.makeroot "$KVERSION" || return 1
     rm -rf -- "$TESTDIR"/overlay
 
-    dd if=/dev/zero of="$TESTDIR"/root.img bs=1MiB count=80
-    dd if=/dev/zero of="$TESTDIR"/marker.img bs=1MiB count=1
     declare -a disk_args=()
     declare -i disk_index=0
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/marker.img marker
-    qemu_add_drive_args disk_index disk_args "$TESTDIR"/root.img root
+    qemu_add_drive disk_index disk_args "$TESTDIR"/marker.img marker 1
+    qemu_add_drive disk_index disk_args "$TESTDIR"/root.img root 1
 
     # Invoke KVM and/or QEMU to actually create the target filesystem.
     "$testdir"/run-qemu \
         "${disk_args[@]}" \
-        -append "root=/dev/fakeroot rw rootfstype=ext3 quiet console=ttyS0,115200n81 selinux=0" \
+        -append "root=/dev/fakeroot rw rootfstype=ext4 quiet console=ttyS0,115200n81 selinux=0" \
         -initrd "$TESTDIR"/initramfs.makeroot || return 1
-    grep -U --binary-files=binary -F -m 1 -q dracut-root-block-created "$TESTDIR"/marker.img || return 1
+    test_marker_check dracut-root-block-created || return 1
     rm -- "$TESTDIR"/marker.img
 
     # systemd-analyze.sh calls man indirectly
@@ -70,7 +66,7 @@ test_setup() {
     "$basedir"/dracut.sh -l -i "$TESTDIR"/overlay / \
         -a "test systemd" \
         -o "network kernel-network-modules" \
-        -d "piix ide-gd_mod ata_piix ext3 sd_mod" \
+        -d "piix ide-gd_mod ata_piix ext4" \
         -i ./systemd-analyze.sh /lib/dracut/hooks/pre-pivot/00-systemd-analyze.sh \
         -i "/bin/true" "/usr/bin/man" \
         --no-hostonly-cmdline -N \
