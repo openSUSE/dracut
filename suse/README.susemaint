@@ -418,3 +418,4 @@ a6df84b7 test: make the size of all test drives 512 MB
 49a971b6 test(FULL SYSTEMD): no need to include dbus to the target rootfs
 412807b6 test(FULL-SYSTEMD): use poweroff to shut down test
 43648f08 test: move /failed to /run/failed as rootfs might be read-only
+bf29f4b7 fix(nfs): do not execute logic in nfs hooks if netroot is not nfs
