@@ -24,7 +24,7 @@ installkernel() {
     }
 
     install_block_modules() {
-        instmods \
+        hostonly=$(optional_hostonly) instmods \
             scsi_dh_rdac scsi_dh_emc scsi_dh_alua \
             =drivers/usb/storage \
             =ide nvme vmd \
