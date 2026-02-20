@@ -16,7 +16,8 @@ branch. Currently, these active maintenance branches are:
 - SL-Micro-6.1_Update   -> SL Micro 6.1
 - SLES-16.0_Update      -> SLES 16.0 and SL Micro 6.2 (both share the same code)
 - SLFO_Main             -> SUSE Linux Framework One
-- SUSE/059              -> Tumbleweed
+
+*** NOTICE: Tumbleweed moved to https://github.com/openSUSE/dracut-ng
 
 Rules:
 
@@ -86,8 +87,8 @@ Date:   Wed Sep 21 11:54:17 2022 +0200
 [3] Factory OBS Devel repo: https://build.opensuse.org/package/show/Base:System/dracut
 
 
-Current status of the SUSE/059 branch (Tumbleweed)
-==================================================
+Current status of the SUSE/059 branch (last version used in Tumbleweed)
+=======================================================================
 
 1. Upstream commits that were already merged
 
