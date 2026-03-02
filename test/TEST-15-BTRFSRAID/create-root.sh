@@ -2,24 +2,16 @@
 
 trap 'poweroff -f' EXIT
 
-# don't let udev and this script step on eachother's toes
-for x in 64-lvm.rules 70-mdadm.rules 99-mount-rules; do
-    : > "/etc/udev/rules.d/$x"
-done
-modprobe btrfs || :
-udevadm control --reload
-udevadm settle
-
 set -e
 
-mkfs.btrfs -draid10 -mraid10 -L root /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_raid[1234]
+mkfs.btrfs -draid0 -mraid0 -L root /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_raid[12]
 udevadm settle
 
 btrfs device scan
 udevadm settle
 
 mkdir -p /sysroot
-mount -t btrfs /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_raid4 /sysroot
+mount -t btrfs /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_raid1 /sysroot
 cp -a -t /sysroot /source/*
 umount /sysroot
 
