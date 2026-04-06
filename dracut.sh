@@ -1110,6 +1110,7 @@ drivers_dir="${drivers_dir%"${drivers_dir##*[!/]}"}"
 [[ $uefi_splash_image_l ]] && uefi_splash_image="$uefi_splash_image_l"
 [[ $kernel_image_l ]] && kernel_image="$kernel_image_l"
 [[ $machine_id_l ]] && machine_id="$machine_id_l"
+[[ $nvmf_nbft_mode ]] || nvmf_nbft_mode=match
 
 if ! [[ $outfile ]]; then
     if [[ $machine_id != "no" ]]; then
@@ -1343,6 +1344,13 @@ else
 fi
 
 # shellcheck disable=SC2154
+case $nvmf_nbft_mode in
+    nbft | match | static) ;;
+    *)
+        dwarn "Invalid value \"$nvmf_nbft_mode\" for nvmf_nbft_mode. Assuming \"match\"."
+        nvmf_nbft_mode=match
+        ;;
+esac
 if [[ $no_kernel != yes ]] && ! [[ -d $srcmods ]]; then
     dfatal "Cannot find module directory $srcmods"
     dfatal "and --no-kernel was not specified"
