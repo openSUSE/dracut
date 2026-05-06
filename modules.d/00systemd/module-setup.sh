@@ -30,6 +30,16 @@ install() {
         exit 1
     fi
 
+    # In SUSE, systemd is built with the -Ddebug-shell=/bin/bash option.
+    # In usr-merge systems, /bin always points to /usr/bin, so /bin/bash is
+    # always found. But in split-usr systems (e.g. SLES <= 15), /bin/bash may
+    # not be included in certain circumstances (only /usr/bin/bash), causing
+    # the debug-shell.service to fail.
+    # Adding a dependency to the bash dracut module does not install
+    # /usr/bin/sh. Although that should not be an issue, take the safer approach
+    # and explicitly install /bin/bash here.
+    inst /bin/bash
+
     inst_multiple -o \
         "$systemdutildir"/systemd \
         "$systemdutildir"/systemd-coredump \
