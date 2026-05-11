@@ -370,6 +370,10 @@ zipl:
   - changed-files:
     - any-glob-to-any-file: 'modules.d/91zipl/*'
 
+chrony:
+  - changed-files:
+    - any-glob-to-any-file: 'modules.d/95chrony/*'
+
 cifs:
   - changed-files:
     - any-glob-to-any-file: 'modules.d/95cifs/*'
