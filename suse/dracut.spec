@@ -1,7 +1,7 @@
 #
 # spec file for package dracut
 #
-# Copyright (c) 2022 SUSE LLC
+# Copyright (c) 2026 SUSE LLC
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -428,6 +428,7 @@ rm -f /var/adm/fillup-templates/sysconfig.kernel-mkinitrd
 %ifarch s390 s390x
 %{dracutlibdir}/modules.d/91zipl
 %endif
+%{dracutlibdir}/modules.d/95chrony
 %{dracutlibdir}/modules.d/95cifs
 %ifarch s390 s390x
 %{dracutlibdir}/modules.d/95dcssblk
