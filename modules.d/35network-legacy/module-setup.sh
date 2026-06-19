@@ -24,7 +24,7 @@ installkernel() {
 # called by dracut
 install() {
     local _arch _i _dir
-    inst_multiple ip sed awk grep
+    inst_multiple ip sed awk grep tr
     inst_multiple -o dhclient
     inst_multiple -o arping arping2
     strstr "$(arping 2>&1)" "ARPing 2" && mv "$initdir/bin/arping" "$initdir/bin/arping2"
