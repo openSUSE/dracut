@@ -312,7 +312,7 @@ do_ipv6auto() {
     wait_for_ipv6_auto "$netif"
     ret=$?
 
-    [ -n "$hostname" ] && echo "echo $hostname > /proc/sys/kernel/hostname" > "/tmp/net.${netif}.hostname"
+    [ -n "$hostname" ] && printf "echo '%s' > /proc/sys/kernel/hostname\n" "$(escape "$hostname")" > "/tmp/net.${netif}.hostname"
 
     return "$ret"
 }
@@ -325,7 +325,7 @@ do_ipv6link() {
     echo 0 > /proc/sys/net/ipv6/conf/"${netif}"/accept_redirects
     linkup "$netif"
 
-    [ -n "$hostname" ] && echo "echo $hostname > /proc/sys/kernel/hostname" > "/tmp/net.${netif}.hostname"
+    [ -n "$hostname" ] && printf "echo '%s' > /proc/sys/kernel/hostname\n" "$(escape "$hostname")" > "/tmp/net.${netif}.hostname"
 
     return "$ret"
 }
@@ -385,7 +385,7 @@ do_static() {
     fi
 
     [ -n "$gw" ] && echo "ip route replace default via '$gw' dev '$netif'" > "/tmp/net.$netif.gw"
-    [ -n "$hostname" ] && echo "echo '$hostname' > /proc/sys/kernel/hostname" > "/tmp/net.$netif.hostname"
+    [ -n "$hostname" ] && printf "echo '%s' > /proc/sys/kernel/hostname\n" "$(escape "$hostname")" > "/tmp/net.$netif.hostname"
 
     for ifroute in /etc/sysconfig/network/ifroute-${netif} /etc/sysconfig/network/routes ; do
         [ -e ${ifroute} ] || continue
