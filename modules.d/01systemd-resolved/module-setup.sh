@@ -31,6 +31,11 @@ install() {
 
     inst_simple "$moddir/resolved-tmpfile-dracut.conf" "$tmpfilesdir/resolved-tmpfile-dracut.conf"
 
+    # systemd-resolved owns /run/systemd/resolve/, which survives switch-root,
+    # so it must run with the same UID/GID as in the real root
+    grep -s '^systemd-resolve:' "${dracutsysrootdir-}"/etc/passwd >> "$initdir/etc/passwd"
+    grep -s '^systemd-resolve:' "${dracutsysrootdir-}"/etc/group >> "$initdir/etc/group"
+
     inst_multiple -o \
         "$dbussystem"/org.freedesktop.resolve1.conf \
         "$dbussystemservices"/org.freedesktop.resolve1.service \
